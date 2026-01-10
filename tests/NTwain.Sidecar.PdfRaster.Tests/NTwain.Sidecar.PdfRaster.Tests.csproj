@@ -25,10 +25,4 @@
     <ProjectReference Include="..\..\src\NTwain.Sidecar.PdfRaster\NTwain.Sidecar.PdfRaster.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="SamplePdfs\**\*.pdf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>

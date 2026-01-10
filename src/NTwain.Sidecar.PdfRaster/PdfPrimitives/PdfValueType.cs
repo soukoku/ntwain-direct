@@ -18,5 +18,6 @@ public enum PdfValueType
     Dictionary,
     Stream,
     Reference,
-    Comment
+    Comment,
+    Keyword
 }

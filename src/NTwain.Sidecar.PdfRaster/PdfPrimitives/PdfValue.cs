@@ -22,6 +22,7 @@ public abstract class PdfValue
     public virtual bool IsStream => Type == PdfValueType.Stream;
     public virtual bool IsReference => Type == PdfValueType.Reference;
     public virtual bool IsComment => Type == PdfValueType.Comment;
+    public virtual bool IsKeyword => Type == PdfValueType.Keyword;
     
     public static PdfNull Null { get; } = new PdfNull();
     public static PdfError Error { get; } = new PdfError();

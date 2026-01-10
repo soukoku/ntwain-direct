@@ -7,7 +7,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// </summary>
 public class PdfDictionary : PdfValue
 {
-    private readonly Dictionary<string, PdfValue> _entries = new();
+    private readonly Dictionary<string, PdfValue> _entries = [];
     
     public PdfDictionary() { }
     
