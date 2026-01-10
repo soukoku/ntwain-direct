@@ -236,7 +236,7 @@ public static class MagickImageEncoder
             return ExtractBitonalPixelData(image);
         }
         
-        var (mapping, _) = GetPixelMappingAndStorage(format);
+        var (mapping, storageType) = GetPixelMappingAndStorage(format);
 
         // Convert to appropriate depth if needed
         switch (format)
@@ -252,7 +252,21 @@ public static class MagickImageEncoder
         }
 
         using var pixels = image.GetPixels();
-        return pixels.ToByteArray(mapping) ?? [];
+        
+        // Use the correct method based on storage type
+        if (storageType == StorageType.Short)
+        {
+            // For 16-bit formats, we need to use ToShortArray and convert to bytes
+            var shortArray = pixels.ToShortArray(mapping) ?? [];
+            var byteArray = new byte[shortArray.Length * 2];
+            Buffer.BlockCopy(shortArray, 0, byteArray, 0, byteArray.Length);
+            return byteArray;
+        }
+        else
+        {
+            // For 8-bit formats
+            return pixels.ToByteArray(mapping) ?? [];
+        }
     }
 
     /// <summary>

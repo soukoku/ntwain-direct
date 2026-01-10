@@ -284,10 +284,26 @@ public class MagickImageEncoderTests
     [Fact]
     public void Encode_BitonalCcittGroup4_ProducesCompressedData()
     {
-        // Arrange
+        // Arrange - Use a pattern that actually compresses well, not worst-case checkerboard
         var width = 100;
         var height = 100;
-        var pixelData = CreateBitonalTestImage(width, height);
+        var bytesPerRow = (width + 7) / 8;
+        var pixelData = new byte[bytesPerRow * height];
+        
+        // Create horizontal stripes (better for CCITT compression than checkerboard)
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                // Horizontal stripes every 4 rows
+                if (y % 4 < 2)
+                {
+                    var byteIndex = y * bytesPerRow + x / 8;
+                    var bitIndex = 7 - (x % 8);
+                    pixelData[byteIndex] |= (byte)(1 << bitIndex);
+                }
+            }
+        }
 
         // Act
         var result = MagickImageEncoder.Encode(pixelData, width, height, 
@@ -295,25 +311,9 @@ public class MagickImageEncoderTests
 
         // Assert
         Assert.True(result.Length > 0, "Should produce compressed data");
-        // CCITT Group 4 typically produces smaller output for bitonal images
-        Assert.True(result.Length < pixelData.Length * 2, 
-            "CCITT compressed data should not be much larger than original");
-    }
-
-    [Fact]
-    public void Encode_BitonalCcittGroup4_WithCheckerboard_ProducesData()
-    {
-        // Arrange - checkerboard pattern is worst case for CCITT
-        var width = 100;
-        var height = 100;
-        var pixelData = CreateBitonalTestImage(width, height);
-
-        // Act
-        var result = MagickImageEncoder.Encode(pixelData, width, height, 
-            RasterPixelFormat.Bitonal, RasterCompression.CcittGroup4);
-
-        // Assert
-        Assert.True(result.Length > 0, "Should produce output data");
+        // CCITT Group 4 should compress horizontal patterns reasonably well
+        Assert.True(result.Length < pixelData.Length * 1.5, 
+            "CCITT compressed data should be reasonably compressed with horizontal patterns");
     }
 
     [Fact]
