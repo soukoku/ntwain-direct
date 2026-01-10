@@ -1,6 +1,8 @@
+using NTwain.Sidecar.PdfRaster;
+using NTwain.Sidecar.PdfRaster.Reader;
 using Xunit;
 
-namespace NTwain.Sidecar.PdfR.Tests;
+namespace NTwain.Sidecar.PdfRaster.Tests;
 
 /// <summary>
 /// Provides paths to sample PDF files for testing.
@@ -78,6 +80,25 @@ public static class SamplePdfFiles
             foreach (var path in All)
             {
                 data.Add(path);
+            }
+            return data;
+        }
+    }
+
+    /// <summary>
+    /// Gets sample PDF paths that exist as xUnit theory data.
+    /// </summary>
+    public static TheoryData<string> AllExistingAsTheoryData
+    {
+        get
+        {
+            var data = new TheoryData<string>();
+            foreach (var path in All)
+            {
+                if (File.Exists(path))
+                {
+                    data.Add(path);
+                }
             }
             return data;
         }
