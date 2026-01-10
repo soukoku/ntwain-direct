@@ -139,9 +139,10 @@ public static class PdfDateUtils
 }
 
 /// <summary>
-/// Represents a PDF date/time value
+/// Represents a PDF date/time value with timezone information.
+/// This is a lightweight wrapper around DateTime with explicit timezone offset tracking.
 /// </summary>
-public class PdfDateTime
+public readonly struct PdfDateTime
 {
     public int Year { get; }
     public int Month { get; }
@@ -149,9 +150,11 @@ public class PdfDateTime
     public int Hour { get; }
     public int Minute { get; }
     public int Second { get; }
-    public int HourOffset { get; }
-    public int MinuteOffset { get; }
+    public TimeSpan Offset { get; }
     
+    /// <summary>
+    /// Create from DateTime using local timezone offset
+    /// </summary>
     public PdfDateTime(DateTime dt)
     {
         Year = dt.Year;
@@ -160,14 +163,27 @@ public class PdfDateTime
         Hour = dt.Hour;
         Minute = dt.Minute;
         Second = dt.Second;
-        
-        var offset = TimeZoneInfo.Local.GetUtcOffset(dt);
-        HourOffset = (int)offset.TotalHours;
-        MinuteOffset = Math.Abs(offset.Minutes);
+        Offset = TimeZoneInfo.Local.GetUtcOffset(dt);
     }
     
-    public PdfDateTime(int year, int month, int day, int hour = 0, int minute = 0, int second = 0,
-        int hourOffset = 0, int minuteOffset = 0)
+    /// <summary>
+    /// Create from DateTime with explicit timezone offset
+    /// </summary>
+    public PdfDateTime(DateTime dt, TimeSpan offset)
+    {
+        Year = dt.Year;
+        Month = dt.Month;
+        Day = dt.Day;
+        Hour = dt.Hour;
+        Minute = dt.Minute;
+        Second = dt.Second;
+        Offset = offset;
+    }
+    
+    /// <summary>
+    /// Create from individual components
+    /// </summary>
+    public PdfDateTime(int year, int month, int day, int hour = 0, int minute = 0, int second = 0, TimeSpan offset = default)
     {
         Year = year;
         Month = month;
@@ -175,17 +191,16 @@ public class PdfDateTime
         Hour = hour;
         Minute = minute;
         Second = second;
-        HourOffset = hourOffset;
-        MinuteOffset = minuteOffset;
+        Offset = offset;
     }
     
     /// <summary>
     /// Create a PdfDateTime for the current local time
     /// </summary>
-    public static PdfDateTime Now => new PdfDateTime(DateTime.Now);
+    public static PdfDateTime Now => new(DateTime.Now);
     
     /// <summary>
-    /// Convert to DateTime
+    /// Convert to DateTime (without timezone information)
     /// </summary>
     public DateTime ToDateTime()
     {
@@ -193,34 +208,11 @@ public class PdfDateTime
     }
     
     /// <summary>
-    /// Convert to PDF date string
+    /// Convert to PDF date string using PdfDateUtils
     /// </summary>
     public string ToPdfString()
     {
-        char sign;
-        int absHourOffset;
-        
-        if (HourOffset < 0)
-        {
-            sign = '-';
-            absHourOffset = -HourOffset;
-        }
-        else if (HourOffset > 0)
-        {
-            sign = '+';
-            absHourOffset = HourOffset;
-        }
-        else if (MinuteOffset == 0)
-        {
-            return $"D:{Year:D4}{Month:D2}{Day:D2}{Hour:D2}{Minute:D2}{Second:D2}Z";
-        }
-        else
-        {
-            sign = '+';
-            absHourOffset = 0;
-        }
-        
-        return $"D:{Year:D4}{Month:D2}{Day:D2}{Hour:D2}{Minute:D2}{Second:D2}{sign}{absHourOffset:D2}'{MinuteOffset:D2}'";
+        return PdfDateUtils.ToPdfDateString(ToDateTime(), Offset);
     }
     
     public override string ToString() => ToPdfString();
