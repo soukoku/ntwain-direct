@@ -1,11 +1,9 @@
 <Solution>
-  <Folder Name="/tests/">
-    <Project Path="tests/NTwain.Sidecar.PdfR.Tests/NTwain.Sidecar.PdfR.Tests.csproj" />
-  </Folder>
+  <Folder Name="/tests/" />
   <Project Path="src/DSBridge.Core/DSBridge.Core.csproj" Id="a789ff22-6390-40ef-affe-46b9b27a62ad" />
   <Project Path="src/DSBridge32/DSBridge32.csproj" />
   <Project Path="src/DSBridge64/DSBridge64.csproj" />
   <Project Path="src/NTwain.Sidecar.Dtos/NTwain.Sidecar.Dtos.csproj" Id="6a608496-b2b7-4c5e-9d89-bcc9b89198df" />
-  <Project Path="src/NTwain.Sidecar.PdfR/NTwain.Sidecar.PdfR.csproj" />
+  <Project Path="src/NTwain.Sidecar.PdfRaster/NTwain.Sidecar.PdfRaster.csproj" />
   <Project Path="src/NTwain.Sidecar/NTwain.Sidecar.csproj" />
 </Solution>

@@ -15,7 +15,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\DSBridge.Core\DSBridge.Core.csproj" />
 		<ProjectReference Include="..\NTwain.Sidecar.Dtos\NTwain.Sidecar.Dtos.csproj" />
-		<ProjectReference Include="..\NTwain.Sidecar.PdfR\NTwain.Sidecar.PdfR.csproj" />
+		<ProjectReference Include="..\NTwain.Sidecar.PdfRaster\NTwain.Sidecar.PdfRaster.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -22,10 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NTwain.Sidecar.PdfR\NTwain.Sidecar.PdfR.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="SamplePdfs\**\*.pdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
