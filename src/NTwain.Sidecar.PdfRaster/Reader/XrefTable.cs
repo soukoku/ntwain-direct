@@ -1,14 +1,16 @@
-// Cross-reference table for PDF
+// Cross-reference table for PDF reading
 // Ported from pdfrasread.c xref handling
+
+using NTwain.Sidecar.PdfRaster.PdfObjects;
 
 namespace NTwain.Sidecar.PdfRaster.Reader;
 
 /// <summary>
-/// PDF cross-reference table
+/// PDF cross-reference table for reading
 /// </summary>
 internal class XrefTable
 {
-    private readonly List<XrefEntry> _entries = new();
+    private readonly List<XrefEntry> _entries = [];
     
     public int Count => _entries.Count;
     
@@ -25,9 +27,9 @@ internal class XrefTable
     /// <summary>
     /// Add an entry to the xref table
     /// </summary>
-    public void Add(long offset, int generation, XrefEntryStatus status)
+    public void Add(XrefEntry entry)
     {
-        _entries.Add(new XrefEntry(offset, generation, status));
+        _entries.Add(entry);
     }
     
     /// <summary>
@@ -83,8 +85,10 @@ internal class XrefTable
             // Parse status (1 char after space)
             char status = (char)data[entryOffset + 17];
             
-            var entryStatus = status == 'n' ? XrefEntryStatus.InUse : XrefEntryStatus.Free;
-            table.Add(objOffset, gen, entryStatus);
+            var entry = status == 'n' 
+                ? XrefEntry.InUse(objOffset, gen) 
+                : XrefEntry.Free(gen);
+            table.Add(entry);
         }
         
         return table;
