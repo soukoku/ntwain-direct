@@ -61,6 +61,42 @@ internal class PdfParser
         return null;
     }
     
+    /// <summary>
+    /// Parse any PDF value at the given offset, including comments
+    /// </summary>
+    public PdfValue? ParseValueOrComment(ref long offset)
+    {
+        // Don't skip whitespace first - check for comment
+        int ch = _tokenizer.PeekChar(offset);
+        
+        // Skip leading whitespace but not comments
+        while (ch >= 0 && char.IsWhiteSpace((char)ch))
+        {
+            offset++;
+            ch = _tokenizer.PeekChar(offset);
+        }
+        
+        if (ch < 0)
+            return null;
+        
+        // Check for comment
+        if (ch == '%')
+            return ParseComment(ref offset);
+        
+        // Otherwise parse as regular value
+        return ParseValue(ref offset);
+    }
+    
+    /// <summary>
+    /// Parse a comment
+    /// </summary>
+    public PdfComment? ParseComment(ref long offset)
+    {
+        if (_tokenizer.TryParseComment(ref offset, out string text))
+            return new PdfComment(text);
+        return null;
+    }
+    
     private PdfName? ParseName(ref long offset)
     {
         if (_tokenizer.TryParseName(ref offset, out string name))

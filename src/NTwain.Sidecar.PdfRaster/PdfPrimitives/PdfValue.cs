@@ -21,6 +21,7 @@ internal abstract class PdfValue
     public virtual bool IsDictionary => Type == PdfValueType.Dictionary;
     public virtual bool IsStream => Type == PdfValueType.Stream;
     public virtual bool IsReference => Type == PdfValueType.Reference;
+    public virtual bool IsComment => Type == PdfValueType.Comment;
     
     public static PdfNull Null { get; } = new PdfNull();
     public static PdfError Error { get; } = new PdfError();

@@ -17,5 +17,6 @@ internal enum PdfValueType
     Array,
     Dictionary,
     Stream,
-    Reference
+    Reference,
+    Comment
 }

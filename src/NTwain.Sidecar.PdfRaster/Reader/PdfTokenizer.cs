@@ -98,6 +98,48 @@ internal class PdfTokenizer
     }
     
     /// <summary>
+    /// Try to parse a comment (line starting with %)
+    /// </summary>
+    public bool TryParseComment(ref long offset, out string commentText)
+    {
+        commentText = string.Empty;
+        
+        int ch = PeekChar(offset);
+        if (ch != '%')
+            return false;
+        
+        var chars = new List<char>();
+        long pos = offset + 1; // Skip the %
+        
+        while (true)
+        {
+            ch = PeekChar(pos);
+            if (ch < 0 || ch == '\r' || ch == '\n')
+                break;
+            
+            chars.Add((char)ch);
+            pos++;
+        }
+        
+        // Skip the end-of-line character(s)
+        if (ch == '\r')
+        {
+            pos++;
+            ch = PeekChar(pos);
+            if (ch == '\n')
+                pos++;
+        }
+        else if (ch == '\n')
+        {
+            pos++;
+        }
+        
+        offset = pos;
+        commentText = new string(chars.ToArray());
+        return true;
+    }
+    
+    /// <summary>
     /// Check if character is a PDF delimiter
     /// </summary>
     public static bool IsDelimiter(int ch)
