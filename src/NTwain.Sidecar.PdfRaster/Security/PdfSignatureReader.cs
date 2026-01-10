@@ -10,7 +10,7 @@ public class PdfSignatureReader
     /// <summary>
     /// Check if a PDF dictionary represents a signature
     /// </summary>
-    public static bool IsSignatureDictionary(PdfPrimitives.PdfDictionary dict)
+    internal static bool IsSignatureDictionary(PdfPrimitives.PdfDictionary dict)
     {
         var type = dict["Type"];
         var filter = dict["Filter"];
@@ -20,11 +20,11 @@ public class PdfSignatureReader
                filter is PdfPrimitives.PdfName filterName &&
                filterName.Value.StartsWith("Adobe.PPK");
     }
-    
+
     /// <summary>
     /// Extract signature information from dictionary
     /// </summary>
-    public static DigitalSignatureInfo? ExtractSignatureInfo(PdfPrimitives.PdfDictionary dict)
+    internal static DigitalSignatureInfo? ExtractSignatureInfo(PdfPrimitives.PdfDictionary dict)
     {
         if (!IsSignatureDictionary(dict))
             return null;

@@ -5,18 +5,11 @@ namespace NTwain.Sidecar.PdfRaster.Reader;
 /// <summary>
 /// Entry in the cross-reference table
 /// </summary>
-public readonly struct XrefEntry
+internal readonly struct XrefEntry(long offset, int generation, XrefEntryStatus status)
 {
-    public long Offset { get; }
-    public int Generation { get; }
-    public XrefEntryStatus Status { get; }
-    
-    public XrefEntry(long offset, int generation, XrefEntryStatus status)
-    {
-        Offset = offset;
-        Generation = generation;
-        Status = status;
-    }
+    public long Offset { get; } = offset;
+    public int Generation { get; } = generation;
+    public XrefEntryStatus Status { get; } = status;
     
     public bool IsInUse => Status == XrefEntryStatus.InUse;
     public bool IsFree => Status == XrefEntryStatus.Free;

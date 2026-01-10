@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// Common PDF name constants
 /// </summary>
-public static class PdfNames
+internal static class PdfNames
 {
     public static readonly PdfName Type = new("Type");
     public static readonly PdfName Subtype = new("Subtype");

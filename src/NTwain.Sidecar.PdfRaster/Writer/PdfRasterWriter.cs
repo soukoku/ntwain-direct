@@ -1,7 +1,6 @@
 // PDF/raster writer
 // Ported from PdfRaster.c
 
-using System.IO.Compression;
 using System.Security.Cryptography;
 using NTwain.Sidecar.PdfRaster.PdfPrimitives;
 
@@ -336,7 +335,7 @@ public class PdfRasterWriter : IDisposable
         byte[] streamData;
         if (_compression == RasterCompression.Flate)
         {
-            streamData = CompressFlate(data, offset, count);
+            streamData = RasterUtilities.CompressFlate(data, offset, count);
         }
         else
         {
@@ -470,16 +469,7 @@ public class PdfRasterWriter : IDisposable
         _output = null;
     }
     
-    private int GetBitsPerComponent()
-    {
-        return _pixelFormat switch
-        {
-            RasterPixelFormat.Bitonal => 1,
-            RasterPixelFormat.Gray8 or RasterPixelFormat.Rgb24 => 8,
-            RasterPixelFormat.Gray16 or RasterPixelFormat.Rgb48 => 16,
-            _ => 8
-        };
-    }
+    private int GetBitsPerComponent() => RasterUtilities.GetBitsPerComponent(_pixelFormat);
     
     private PdfValue GetColorspace()
     {
@@ -605,31 +595,6 @@ public class PdfRasterWriter : IDisposable
         
         var data = System.Text.Encoding.ASCII.GetBytes(content.ToString());
         return new PdfStream(data);
-    }
-    
-    /// <summary>
-    /// Compress data using zlib/Flate compression
-    /// </summary>
-    private static byte[] CompressFlate(byte[] data, int offset, int count)
-    {
-        using var output = new MemoryStream();
-        using (var deflate = new ZLibStream(output, CompressionLevel.Optimal, leaveOpen: true))
-        {
-            deflate.Write(data, offset, count);
-        }
-        return output.ToArray();
-    }
-    
-    /// <summary>
-    /// Decompress zlib/Flate data
-    /// </summary>
-    internal static byte[] DecompressFlate(byte[] data)
-    {
-        using var input = new MemoryStream(data);
-        using var inflate = new ZLibStream(input, CompressionMode.Decompress);
-        using var output = new MemoryStream();
-        inflate.CopyTo(output);
-        return output.ToArray();
     }
     
     private byte[] GenerateFileId()

@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF real (floating-point) value
 /// </summary>
-public class PdfReal : PdfValue
+internal class PdfReal : PdfValue
 {
     public double Value { get; }
     

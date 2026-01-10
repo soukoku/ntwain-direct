@@ -28,9 +28,9 @@ public static class MagickImageEncoder
         return compression switch
         {
             RasterCompression.Uncompressed => pixelData,
-            RasterCompression.CcittGroup4 => EncodeCcittGroup4(magickImage, width, height),
+            RasterCompression.CcittGroup4 => EncodeCcittGroup4(magickImage),
             RasterCompression.Jpeg => EncodeJpeg(magickImage, jpegQuality),
-            RasterCompression.Flate => EncodeFlate(pixelData),
+            RasterCompression.Flate => RasterUtilities.CompressFlate(pixelData),
             _ => throw new NotSupportedException($"Compression {compression} is not supported for encoding.")
         };
     }
@@ -52,7 +52,7 @@ public static class MagickImageEncoder
         return compression switch
         {
             RasterCompression.Uncompressed => data,
-            RasterCompression.Flate => DecodeFlate(data),
+            RasterCompression.Flate => RasterUtilities.DecompressFlate(data),
             RasterCompression.Jpeg => DecodeJpeg(data, pixelFormat),
             RasterCompression.CcittGroup4 => DecodeCcittGroup4(data, width, height, pixelFormat),
             _ => throw new NotSupportedException($"Compression {compression} is not supported for decoding.")
@@ -104,7 +104,7 @@ public static class MagickImageEncoder
         };
     }
 
-    private static byte[] EncodeCcittGroup4(MagickImage image, int width, int height)
+    private static byte[] EncodeCcittGroup4(MagickImage image)
     {
         // Ensure image is bilevel for Group 4
         image.ColorType = ColorType.Bilevel;
@@ -125,27 +125,6 @@ public static class MagickImageEncoder
         using var stream = new MemoryStream();
         image.Write(stream);
         return stream.ToArray();
-    }
-
-    private static byte[] EncodeFlate(byte[] data)
-    {
-        using var output = new MemoryStream();
-        using (var deflate = new System.IO.Compression.ZLibStream(output, 
-            System.IO.Compression.CompressionLevel.Optimal, leaveOpen: true))
-        {
-            deflate.Write(data, 0, data.Length);
-        }
-        return output.ToArray();
-    }
-
-    private static byte[] DecodeFlate(byte[] data)
-    {
-        using var input = new MemoryStream(data);
-        using var inflate = new System.IO.Compression.ZLibStream(input, 
-            System.IO.Compression.CompressionMode.Decompress);
-        using var output = new MemoryStream();
-        inflate.CopyTo(output);
-        return output.ToArray();
     }
 
     private static byte[] DecodeJpeg(byte[] data, RasterPixelFormat format)

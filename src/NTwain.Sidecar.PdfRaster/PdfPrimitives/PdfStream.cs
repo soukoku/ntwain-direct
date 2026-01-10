@@ -5,11 +5,11 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF stream value (dictionary + data)
 /// </summary>
-public class PdfStream : PdfDictionary
+internal class PdfStream : PdfDictionary
 {
     public byte[] Data { get; set; }
     
-    public PdfStream() : this(Array.Empty<byte>()) { }
+    public PdfStream() : this([]) { }
     
     public PdfStream(byte[] data)
     {

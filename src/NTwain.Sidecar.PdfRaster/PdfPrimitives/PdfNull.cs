@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF null value
 /// </summary>
-public class PdfNull : PdfValue
+internal class PdfNull : PdfValue
 {
     public override PdfValueType Type => PdfValueType.Null;
     

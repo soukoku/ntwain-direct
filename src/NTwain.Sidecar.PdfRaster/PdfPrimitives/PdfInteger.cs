@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF integer value
 /// </summary>
-public class PdfInteger : PdfValue
+internal class PdfInteger : PdfValue
 {
     public long Value { get; }
     

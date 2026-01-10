@@ -25,30 +25,11 @@ public static class ImageDecoder
         return compression switch
         {
             RasterCompression.Uncompressed => data,
-            RasterCompression.Flate => DecodeFlate(data),
+            RasterCompression.Flate => RasterUtilities.DecompressFlate(data),
             RasterCompression.Jpeg => DecodeJpeg(data),
             RasterCompression.CcittGroup4 => DecodeCcittGroup4(data, width, height),
             _ => throw new PdfRasterException($"Unsupported compression: {compression}")
         };
-    }
-
-    /// <summary>
-    /// Decode Flate (zlib) compressed data
-    /// </summary>
-    public static byte[] DecodeFlate(byte[] data)
-    {
-        try
-        {
-            using var input = new MemoryStream(data);
-            using var inflate = new ZLibStream(input, CompressionMode.Decompress);
-            using var output = new MemoryStream();
-            inflate.CopyTo(output);
-            return output.ToArray();
-        }
-        catch (Exception ex)
-        {
-            throw new PdfRasterException("Failed to decode Flate data", ex);
-        }
     }
 
     /// <summary>
@@ -224,32 +205,10 @@ public static class ImageDecoder
     /// <summary>
     /// Get the number of components for a pixel format
     /// </summary>
-    public static int GetComponents(RasterPixelFormat format)
-    {
-        return format switch
-        {
-            RasterPixelFormat.Bitonal => 1,
-            RasterPixelFormat.Gray8 => 1,
-            RasterPixelFormat.Gray16 => 1,
-            RasterPixelFormat.Rgb24 => 3,
-            RasterPixelFormat.Rgb48 => 3,
-            _ => 1
-        };
-    }
+    public static int GetComponents(RasterPixelFormat format) => RasterUtilities.GetComponents(format);
 
     /// <summary>
     /// Get bits per component for a pixel format
     /// </summary>
-    public static int GetBitsPerComponent(RasterPixelFormat format)
-    {
-        return format switch
-        {
-            RasterPixelFormat.Bitonal => 1,
-            RasterPixelFormat.Gray8 => 8,
-            RasterPixelFormat.Gray16 => 16,
-            RasterPixelFormat.Rgb24 => 8,
-            RasterPixelFormat.Rgb48 => 16,
-            _ => 8
-        };
-    }
+    public static int GetBitsPerComponent(RasterPixelFormat format) => RasterUtilities.GetBitsPerComponent(format);
 }

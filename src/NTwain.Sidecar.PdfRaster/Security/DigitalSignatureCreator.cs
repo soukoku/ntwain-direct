@@ -2,13 +2,14 @@
 
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
+using NTwain.Sidecar.PdfRaster.PdfPrimitives;
 
 namespace NTwain.Sidecar.PdfRaster.Security;
 
 /// <summary>
 /// Digital signature creator for PDF documents
 /// </summary>
-public class DigitalSignatureCreator
+internal class DigitalSignatureCreator
 {
     private readonly X509Certificate2 _certificate;
     private readonly DigitalSignatureInfo _info;
@@ -65,33 +66,31 @@ public class DigitalSignatureCreator
     /// <summary>
     /// Create signature dictionary for PDF
     /// </summary>
-    public PdfPrimitives.PdfDictionary CreateSignatureDictionary(byte[] signature)
+    public PdfDictionary CreateSignatureDictionary(byte[] signature)
     {
-        var dict = new PdfPrimitives.PdfDictionary();
+        var dict = new PdfDictionary();
         
-        dict["Type"] = new PdfPrimitives.PdfName("Sig");
-        dict["Filter"] = new PdfPrimitives.PdfName("Adobe.PPKLite");
-        dict["SubFilter"] = new PdfPrimitives.PdfName("adbe.pkcs7.detached");
-        
-        // Add signature data as hex string
-        dict["Contents"] = new PdfPrimitives.PdfString(signature, true);
+        dict["Type"] = new PdfName("Sig");
+        dict["Filter"] = new PdfName("Adobe.PPKLite");
+        dict["SubFilter"] = new PdfName("adbe.pkcs7.detached");
+        dict["Contents"] = new PdfString(signature, true);
         
         // Add optional fields
         if (!string.IsNullOrEmpty(_info.Name))
-            dict["Name"] = new PdfPrimitives.PdfString(_info.Name);
+            dict["Name"] = new PdfString(_info.Name);
         
         if (!string.IsNullOrEmpty(_info.Reason))
-            dict["Reason"] = new PdfPrimitives.PdfString(_info.Reason);
+            dict["Reason"] = new PdfString(_info.Reason);
         
         if (!string.IsNullOrEmpty(_info.Location))
-            dict["Location"] = new PdfPrimitives.PdfString(_info.Location);
+            dict["Location"] = new PdfString(_info.Location);
         
         if (!string.IsNullOrEmpty(_info.ContactInfo))
-            dict["ContactInfo"] = new PdfPrimitives.PdfString(_info.ContactInfo);
+            dict["ContactInfo"] = new PdfString(_info.ContactInfo);
         
         // Add signing time
         var signingTime = _info.SigningTime ?? DateTime.Now;
-        dict["M"] = new PdfPrimitives.PdfString(Utilities.PdfDateUtils.ToPdfDateString(signingTime));
+        dict["M"] = new PdfString(Utilities.PdfDateUtils.ToPdfDateString(signingTime));
         
         return dict;
     }

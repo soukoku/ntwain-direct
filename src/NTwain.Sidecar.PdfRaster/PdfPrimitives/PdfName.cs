@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF name value (e.g., /Type, /Page)
 /// </summary>
-public class PdfName : PdfValue
+internal class PdfName : PdfValue
 {
     public string Value { get; }
     

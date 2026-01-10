@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF dictionary value
 /// </summary>
-public class PdfDictionary : PdfValue
+internal class PdfDictionary : PdfValue
 {
     private readonly Dictionary<string, PdfValue> _entries = new();
     

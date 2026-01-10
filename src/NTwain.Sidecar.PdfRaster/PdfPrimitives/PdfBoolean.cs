@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF boolean value
 /// </summary>
-public class PdfBoolean : PdfValue
+internal class PdfBoolean : PdfValue
 {
     public bool Value { get; }
     

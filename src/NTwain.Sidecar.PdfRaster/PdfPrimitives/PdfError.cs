@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF error value (internal use)
 /// </summary>
-public class PdfError : PdfValue
+internal class PdfError : PdfValue
 {
     public override PdfValueType Type => PdfValueType.Error;
     

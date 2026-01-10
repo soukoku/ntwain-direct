@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF array value
 /// </summary>
-public class PdfArray : PdfValue
+internal class PdfArray : PdfValue
 {
     private readonly List<PdfValue> _items = new();
     

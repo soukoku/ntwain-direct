@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// Base class for all PDF values
 /// </summary>
-public abstract class PdfValue
+internal abstract class PdfValue
 {
     public abstract PdfValueType Type { get; }
     

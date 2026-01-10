@@ -6,7 +6,7 @@ namespace NTwain.Sidecar.PdfRaster.Reader;
 /// <summary>
 /// PDF cross-reference table
 /// </summary>
-public class XrefTable
+internal class XrefTable
 {
     private readonly List<XrefEntry> _entries = new();
     
