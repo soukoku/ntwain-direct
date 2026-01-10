@@ -64,6 +64,7 @@ public class PdfRasterWriterTests
         Assert.True(pdfData.Length > 0, "PDF should have content");
         Assert.StartsWith("%PDF-", System.Text.Encoding.ASCII.GetString(pdfData, 0, 5));
         Assert.Contains("%%EOF", System.Text.Encoding.ASCII.GetString(pdfData));
+        File.WriteAllBytes("UncompressedGray8.pdf", outputStream.ToArray());
     }
 
     [Fact]
@@ -96,6 +97,9 @@ public class PdfRasterWriterTests
         Assert.True(pdfData.Length > 0);
         Assert.StartsWith("%PDF-", pdfText[..5]);
         Assert.Contains("/FlateDecode", pdfText);
+
+        File.WriteAllBytes("FlateCompressedGray8.pdf", pdfData);
+        
     }
 
     [Fact]
@@ -125,6 +129,7 @@ public class PdfRasterWriterTests
         var pdfText = System.Text.Encoding.ASCII.GetString(outputStream.ToArray());
 
         Assert.Contains("/CalRGB", pdfText);
+        File.WriteAllBytes("UncompressedRgb24.pdf", outputStream.ToArray());
     }
 
     [Fact]
@@ -156,6 +161,7 @@ public class PdfRasterWriterTests
         var pdfText = System.Text.Encoding.ASCII.GetString(outputStream.ToArray());
 
         Assert.Contains("/Count 3", pdfText);
+        File.WriteAllBytes("MultiplePages.pdf", outputStream.ToArray());
     }
 
     [Fact]
@@ -190,6 +196,7 @@ public class PdfRasterWriterTests
         // Should have strip0, strip1, strip2, strip3 XObjects
         Assert.Contains("/strip0", pdfText);
         Assert.Contains("/strip3", pdfText);
+        File.WriteAllBytes("MultipleStripes.pdf", outputStream.ToArray());
     }
 
     [Fact]
