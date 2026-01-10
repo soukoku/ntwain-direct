@@ -680,7 +680,7 @@ public class PdfRasterReader : IDisposable
         if (_tokenizer == null || _stream == null)
             return false;
         
-        // Read tail
+        // Read tail to find startxref and %%EOF
         var tail = new byte[PdfRasterConstants.TailSize + 1];
         long tailStart = Math.Max(0, _stream.Length - PdfRasterConstants.TailSize);
         _stream.Seek(tailStart, SeekOrigin.Begin);
@@ -702,22 +702,19 @@ public class PdfRasterReader : IDisposable
             return false;
         }
         
-        // Find PDF-raster tag
-        int tagIndex = tailStr.LastIndexOf("%PDF-raster-");
-        if (tagIndex < 0)
-        {
-            ReportError(ErrorLevel.Compliance, ReadErrorCode.FilePdfrasterTag, tailStart, "PDF-raster tag not found");
-            return false;
-        }
-        
-        // Parse version
-        ParsePdfRasterVersion(tailStr, tagIndex + 12);
-        
         // Parse startxref offset
         long xrefOffset = ParseStartXref(tailStr, startxrefIndex + 9);
         if (xrefOffset < 0)
         {
             ReportError(ErrorLevel.Compliance, ReadErrorCode.FileBadStartxref, tailStart, "Invalid startxref value");
+            return false;
+        }
+        
+        // PDF-raster tag is written BEFORE the xref table, so we need to read 
+        // backwards from xrefOffset to find it
+        if (!FindAndParsePdfRasterTag(xrefOffset))
+        {
+            ReportError(ErrorLevel.Compliance, ReadErrorCode.FilePdfrasterTag, xrefOffset, "PDF-raster tag not found");
             return false;
         }
         
@@ -759,6 +756,36 @@ public class PdfRasterReader : IDisposable
         
         ReportError(ErrorLevel.Compliance, ReadErrorCode.Root, offset, "Root entry not found");
         return false;
+    }
+    
+    /// <summary>
+    /// Find and parse PDF-raster tag which appears before the xref table
+    /// </summary>
+    private bool FindAndParsePdfRasterTag(long xrefOffset)
+    {
+        if (_stream == null)
+            return false;
+        
+        // Read a chunk before xrefOffset to find the PDF-raster tag
+        // The tag is typically on the line immediately before xref
+        const int searchSize = 256;
+        long searchStart = Math.Max(0, xrefOffset - searchSize);
+        int bytesToRead = (int)(xrefOffset - searchStart);
+        
+        var buffer = new byte[bytesToRead];
+        _stream.Seek(searchStart, SeekOrigin.Begin);
+        int bytesRead = _stream.Read(buffer, 0, bytesToRead);
+        
+        string searchStr = System.Text.Encoding.ASCII.GetString(buffer, 0, bytesRead);
+        
+        // Look for %PDF-raster-
+        int tagIndex = searchStr.LastIndexOf("%PDF-raster-");
+        if (tagIndex < 0)
+            return false;
+        
+        // Parse version
+        ParsePdfRasterVersion(searchStr, tagIndex + 12);
+        return true;
     }
     
     private void ParsePdfRasterVersion(string tail, int offset)

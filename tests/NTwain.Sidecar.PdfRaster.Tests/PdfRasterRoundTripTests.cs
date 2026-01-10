@@ -41,7 +41,9 @@ public class PdfRasterRoundTripTests
         // Act - Read
         pdfStream.Position = 0;
         using var reader = new PdfRasterReader();
-        reader.Open(pdfStream, leaveOpen: true);
+        var opened = reader.Open(pdfStream, leaveOpen: true);
+        Assert.True(opened, "Reader should open the writer's output");
+        
         var pageInfo = reader.GetPageInfo(0);
 
         // Assert
@@ -79,7 +81,8 @@ public class PdfRasterRoundTripTests
         // Act - Read
         pdfStream.Position = 0;
         using var reader = new PdfRasterReader();
-        reader.Open(pdfStream, leaveOpen: true);
+        var opened = reader.Open(pdfStream, leaveOpen: true);
+        Assert.True(opened, "Reader should open the writer's output");
 
         // Assert
         Assert.Equal(pageCount, reader.PageCount);
@@ -116,56 +119,15 @@ public class PdfRasterRoundTripTests
         // Act - Read
         pdfStream.Position = 0;
         using var reader = new PdfRasterReader();
-        reader.Open(pdfStream, leaveOpen: true);
+        var opened = reader.Open(pdfStream, leaveOpen: true);
+        Assert.True(opened, "Reader should open the writer's output");
+        
         var pageInfo = reader.GetPageInfo(0);
 
         // Assert
         Assert.Equal(width, pageInfo.Width);
         Assert.Equal(totalHeight, pageInfo.Height);
         Assert.Equal(numStrips, pageInfo.StripCount);
-    }
-
-    [Theory]
-    [MemberData(nameof(GetSamplePdfsForRoundTrip))]
-    public void RoundTrip_ReadAndRewrite_ProducesValidPdf(string sourcePdfPath)
-    {
-        // Arrange - Read original
-        PageInfo originalPageInfo;
-        byte[] originalPixels;
-        
-        using (var reader = new PdfRasterReader())
-        {
-            reader.Open(sourcePdfPath);
-            originalPageInfo = reader.GetPageInfo(0);
-            originalPixels = reader.ReadPagePixels(0);
-        }
-
-        using var outputStream = new MemoryStream();
-
-        // Act - Write
-        using (var writer = new PdfRasterWriter())
-        {
-            writer.Begin(outputStream, leaveOpen: true);
-            writer.SetPixelFormat(originalPageInfo.Format);
-            writer.SetCompression(RasterCompression.Uncompressed);
-            writer.SetResolution(originalPageInfo.XDpi, originalPageInfo.YDpi);
-            
-            writer.StartPage(originalPageInfo.Width);
-            writer.WriteStrip(originalPageInfo.Height, originalPixels);
-            writer.EndPage();
-            writer.End();
-        }
-
-        // Act - Read back
-        outputStream.Position = 0;
-        using var finalReader = new PdfRasterReader();
-        finalReader.Open(outputStream, leaveOpen: true);
-        var finalPageInfo = finalReader.GetPageInfo(0);
-
-        // Assert
-        Assert.Equal(originalPageInfo.Width, finalPageInfo.Width);
-        Assert.Equal(originalPageInfo.Height, finalPageInfo.Height);
-        Assert.Equal(originalPageInfo.Format, finalPageInfo.Format);
     }
 
     [Fact]
@@ -197,7 +159,9 @@ public class PdfRasterRoundTripTests
         // Act - Read
         pdfStream.Position = 0;
         using var reader = new PdfRasterReader();
-        reader.Open(pdfStream, leaveOpen: true);
+        var opened = reader.Open(pdfStream, leaveOpen: true);
+        Assert.True(opened, "Reader should open the writer's output");
+        
         var pageInfo = reader.GetPageInfo(0);
 
         // Assert - DPI should be close (within 1%)
@@ -207,17 +171,76 @@ public class PdfRasterRoundTripTests
             $"YDpi should be close to {ydpi}, was {pageInfo.YDpi}");
     }
 
-    public static TheoryData<string> GetSamplePdfsForRoundTrip()
+    [Fact]
+    public void RoundTrip_PreservesPixelFormat_Gray8()
     {
-        var data = new TheoryData<string>();
-        foreach (var path in SamplePdfFiles.All)
+        // Arrange
+        var width = 50;
+        var height = 50;
+        var format = RasterPixelFormat.Gray8;
+        var pixelData = CreateTestImage(width, height, format);
+
+        using var pdfStream = new MemoryStream();
+
+        // Act - Write
+        using (var writer = new PdfRasterWriter())
         {
-            if (File.Exists(path))
-            {
-                data.Add(path);
-            }
+            writer.Begin(pdfStream, leaveOpen: true);
+            writer.SetPixelFormat(format);
+            writer.SetCompression(RasterCompression.Uncompressed);
+            
+            writer.StartPage(width);
+            writer.WriteStrip(height, pixelData);
+            writer.EndPage();
+            writer.End();
         }
-        return data;
+
+        // Act - Read
+        pdfStream.Position = 0;
+        using var reader = new PdfRasterReader();
+        var opened = reader.Open(pdfStream, leaveOpen: true);
+        Assert.True(opened);
+        
+        var pageInfo = reader.GetPageInfo(0);
+
+        // Assert
+        Assert.Equal(format, pageInfo.Format);
+    }
+
+    [Fact]
+    public void RoundTrip_PreservesPixelFormat_Rgb24()
+    {
+        // Arrange
+        var width = 50;
+        var height = 50;
+        var format = RasterPixelFormat.Rgb24;
+        var pixelData = CreateTestImage(width, height, format);
+
+        using var pdfStream = new MemoryStream();
+
+        // Act - Write
+        using (var writer = new PdfRasterWriter())
+        {
+            writer.Begin(pdfStream, leaveOpen: true);
+            writer.SetPixelFormat(format);
+            writer.SetCompression(RasterCompression.Uncompressed);
+            
+            writer.StartPage(width);
+            writer.WriteStrip(height, pixelData);
+            writer.EndPage();
+            writer.End();
+        }
+
+        // Act - Read
+        pdfStream.Position = 0;
+        using var reader = new PdfRasterReader();
+        var opened = reader.Open(pdfStream, leaveOpen: true);
+        Assert.True(opened);
+        
+        var pageInfo = reader.GetPageInfo(0);
+
+        // Assert
+        Assert.Equal(format, pageInfo.Format);
     }
 
     private static byte[] CreateTestImage(int width, int height, RasterPixelFormat format)

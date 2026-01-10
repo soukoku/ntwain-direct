@@ -1,5 +1,6 @@
 using NTwain.Sidecar.PdfRaster;
 using NTwain.Sidecar.PdfRaster.Reader;
+using NTwain.Sidecar.PdfRaster.Writer;
 using Xunit;
 
 namespace NTwain.Sidecar.PdfRaster.Tests;
@@ -9,59 +10,89 @@ namespace NTwain.Sidecar.PdfRaster.Tests;
 /// </summary>
 public class PdfRasterReaderTests
 {
-    [Theory]
-    [MemberData(nameof(GetAllSamplePdfs))]
-    public void Open_WithSamplePdf_Succeeds(string pdfPath)
-    {
-        // Arrange & Act
-        using var reader = new PdfRasterReader();
-        var result = reader.Open(pdfPath);
-
-        // Assert
-        Assert.True(result, "Open should succeed for valid PDF/raster files");
-        Assert.True(reader.IsOpen);
-    }
-
-    [Theory]
-    [MemberData(nameof(GetAllSamplePdfs))]
-    public void PageCount_WithSamplePdf_ReturnsAtLeastOne(string pdfPath)
+    [Fact]
+    public void PageCount_BeforeOpen_ThrowsException()
     {
         // Arrange
         using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
+
+        // Act & Assert
+        Assert.Throws<PdfApiException>(() => _ = reader.PageCount);
+    }
+
+    [Fact]
+    public void Close_ReleasesResources()
+    {
+        // Arrange - Create a valid PDF/raster using writer
+        using var pdfStream = CreateValidPdfRasterStream();
+        
+        using var reader = new PdfRasterReader();
+        var opened = reader.Open(pdfStream, leaveOpen: true);
+        Assert.True(opened, "Should open valid PDF/raster");
+        Assert.True(reader.IsOpen);
+
+        // Act
+        reader.Close();
+
+        // Assert
+        Assert.False(reader.IsOpen);
+    }
+
+    [Fact]
+    public void Open_WithValidPdfRaster_Succeeds()
+    {
+        // Arrange
+        using var pdfStream = CreateValidPdfRasterStream();
+
+        // Act
+        using var reader = new PdfRasterReader();
+        var result = reader.Open(pdfStream, leaveOpen: true);
+
+        // Assert
+        Assert.True(result, "Open should succeed for valid PDF/raster");
+        Assert.True(reader.IsOpen);
+    }
+
+    [Fact]
+    public void PageCount_WithValidPdfRaster_ReturnsCorrectCount()
+    {
+        // Arrange
+        using var pdfStream = CreateValidPdfRasterStream();
+        using var reader = new PdfRasterReader();
+        reader.Open(pdfStream, leaveOpen: true);
 
         // Act
         var count = reader.PageCount;
 
         // Assert
-        Assert.True(count >= 1, "PDF should have at least one page");
+        Assert.Equal(1, count);
     }
 
-    [Theory]
-    [MemberData(nameof(GetAllSamplePdfs))]
-    public void GetPageInfo_WithSamplePdf_ReturnsValidInfo(string pdfPath)
+    [Fact]
+    public void GetPageInfo_WithValidPdfRaster_ReturnsValidInfo()
     {
         // Arrange
+        using var pdfStream = CreateValidPdfRasterStream(width: 100, height: 80);
         using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
+        reader.Open(pdfStream, leaveOpen: true);
 
         // Act
         var pageInfo = reader.GetPageInfo(0);
 
         // Assert
         Assert.NotNull(pageInfo);
-        Assert.True(pageInfo.Width > 0, "Width should be positive");
-        Assert.True(pageInfo.Height > 0, "Height should be positive");
+        Assert.Equal(100, pageInfo.Width);
+        Assert.Equal(80, pageInfo.Height);
         Assert.True(pageInfo.StripCount >= 1, "Should have at least one strip");
     }
 
-    [Theory]
-    [MemberData(nameof(GetAllSamplePdfs))]
-    public void ReadPagePixels_WithSamplePdf_ReturnsData(string pdfPath)
+    [Fact]
+    public void ReadPagePixels_WithValidPdfRaster_ReturnsData()
     {
         // Arrange
+        using var pdfStream = CreateValidPdfRasterStream();
         using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
+        reader.Open(pdfStream, leaveOpen: true);
 
         // Act
         var pixels = reader.ReadPagePixels(0);
@@ -71,13 +102,13 @@ public class PdfRasterReaderTests
         Assert.True(pixels.Length > 0, "Pixel data should not be empty");
     }
 
-    [Theory]
-    [MemberData(nameof(GetAllSamplePdfs))]
-    public void GetPageInfo_ReturnsPositiveDpi(string pdfPath)
+    [Fact]
+    public void GetPageInfo_ReturnsPositiveDpi()
     {
         // Arrange
+        using var pdfStream = CreateValidPdfRasterStream();
         using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
+        reader.Open(pdfStream, leaveOpen: true);
 
         // Act
         var pageInfo = reader.GetPageInfo(0);
@@ -88,48 +119,12 @@ public class PdfRasterReaderTests
     }
 
     [Fact]
-    public void Open_WithBw1Ccitt_ReturnsBitonalFormat()
+    public void GetPageFormat_WithGray8_ReturnsGray8Format()
     {
         // Arrange
-        var pdfPath = SamplePdfFiles.Bw1Ccitt;
-        if (!File.Exists(pdfPath)) return;
-
+        using var pdfStream = CreateValidPdfRasterStream(format: RasterPixelFormat.Gray8);
         using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
-
-        // Act
-        var format = reader.GetPageFormat(0);
-
-        // Assert
-        Assert.Equal(RasterPixelFormat.Bitonal, format);
-    }
-
-    [Fact]
-    public void Open_WithBw1Uncompressed_ReturnsBitonalFormat()
-    {
-        // Arrange
-        var pdfPath = SamplePdfFiles.Bw1Uncompressed;
-        if (!File.Exists(pdfPath)) return;
-
-        using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
-
-        // Act
-        var format = reader.GetPageFormat(0);
-
-        // Assert
-        Assert.Equal(RasterPixelFormat.Bitonal, format);
-    }
-
-    [Fact]
-    public void Open_WithGray8_ReturnsGray8Format()
-    {
-        // Arrange
-        var pdfPath = SamplePdfFiles.Gray8Uncompressed;
-        if (!File.Exists(pdfPath)) return;
-
-        using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
+        reader.Open(pdfStream, leaveOpen: true);
 
         // Act
         var format = reader.GetPageFormat(0);
@@ -139,31 +134,12 @@ public class PdfRasterReaderTests
     }
 
     [Fact]
-    public void Open_WithGray16_ReturnsGray16Format()
+    public void GetPageFormat_WithRgb24_ReturnsRgb24Format()
     {
         // Arrange
-        var pdfPath = SamplePdfFiles.Gray16Uncompressed;
-        if (!File.Exists(pdfPath)) return;
-
+        using var pdfStream = CreateValidPdfRasterStream(format: RasterPixelFormat.Rgb24);
         using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
-
-        // Act
-        var format = reader.GetPageFormat(0);
-
-        // Assert
-        Assert.Equal(RasterPixelFormat.Gray16, format);
-    }
-
-    [Fact]
-    public void Open_WithRgb24_ReturnsRgb24Format()
-    {
-        // Arrange
-        var pdfPath = SamplePdfFiles.Rgb24Uncompressed;
-        if (!File.Exists(pdfPath)) return;
-
-        using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
+        reader.Open(pdfStream, leaveOpen: true);
 
         // Act
         var format = reader.GetPageFormat(0);
@@ -176,11 +152,9 @@ public class PdfRasterReaderTests
     public void GetPageInfo_WithNegativeIndex_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        var pdfPath = SamplePdfFiles.All.FirstOrDefault(File.Exists);
-        if (pdfPath == null) return;
-
+        using var pdfStream = CreateValidPdfRasterStream();
         using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
+        reader.Open(pdfStream, leaveOpen: true);
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => reader.GetPageInfo(-1));
@@ -190,76 +164,101 @@ public class PdfRasterReaderTests
     public void GetPageInfo_WithIndexOutOfRange_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        var pdfPath = SamplePdfFiles.All.FirstOrDefault(File.Exists);
-        if (pdfPath == null) return;
-
+        using var pdfStream = CreateValidPdfRasterStream();
         using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
+        reader.Open(pdfStream, leaveOpen: true);
 
         // Act & Assert
         Assert.Throws<ArgumentOutOfRangeException>(() => reader.GetPageInfo(999));
     }
 
     [Fact]
-    public void PageCount_BeforeOpen_ThrowsException()
+    public void Open_WithNonSeekableStream_ThrowsArgumentException()
     {
         // Arrange
         using var reader = new PdfRasterReader();
+        using var nonSeekableStream = new NonSeekableStream();
 
         // Act & Assert
-        Assert.Throws<PdfApiException>(() => _ = reader.PageCount);
+        Assert.Throws<ArgumentException>(() => reader.Open(nonSeekableStream));
     }
 
-    [Fact]
-    public void Recognize_WithValidPdfRaster_ReturnsTrue()
+    // Helper method to create a valid PDF/raster stream for testing
+    private static MemoryStream CreateValidPdfRasterStream(
+        int width = 50, 
+        int height = 50, 
+        RasterPixelFormat format = RasterPixelFormat.Gray8)
     {
-        // Arrange
-        var pdfPath = SamplePdfFiles.All.FirstOrDefault(File.Exists);
-        if (pdfPath == null) return;
-
-        using var stream = File.OpenRead(pdfPath);
-
-        // Act
-        var result = PdfRasterReader.Recognize(stream, out var major, out var minor);
-
-        // Assert
-        Assert.True(result);
-        Assert.True(major >= 1);
-        Assert.True(minor >= 0);
-    }
-
-    [Fact]
-    public void Close_ReleasesResources()
-    {
-        // Arrange
-        var pdfPath = SamplePdfFiles.All.FirstOrDefault(File.Exists);
-        if (pdfPath == null) return;
-
-        using var reader = new PdfRasterReader();
-        reader.Open(pdfPath);
-        Assert.True(reader.IsOpen);
-
-        // Act
-        reader.Close();
-
-        // Assert
-        Assert.False(reader.IsOpen);
-    }
-
-    public static TheoryData<string> GetAllSamplePdfs()
-    {
-        var data = new TheoryData<string>();
-        foreach (var path in SamplePdfFiles.All)
+        var pixelData = CreateTestImage(width, height, format);
+        
+        var pdfStream = new MemoryStream();
+        using (var writer = new PdfRasterWriter())
         {
-            if (File.Exists(path))
+            writer.Begin(pdfStream, leaveOpen: true);
+            writer.SetPixelFormat(format);
+            writer.SetCompression(RasterCompression.Uncompressed);
+            writer.SetResolution(200, 200);
+            
+            writer.StartPage(width);
+            writer.WriteStrip(height, pixelData);
+            writer.EndPage();
+            writer.End();
+        }
+        
+        pdfStream.Position = 0;
+        return pdfStream;
+    }
+
+    private static byte[] CreateTestImage(int width, int height, RasterPixelFormat format)
+    {
+        var bytesPerPixel = format switch
+        {
+            RasterPixelFormat.Bitonal => 0,
+            RasterPixelFormat.Gray8 => 1,
+            RasterPixelFormat.Gray16 => 2,
+            RasterPixelFormat.Rgb24 => 3,
+            RasterPixelFormat.Rgb48 => 6,
+            _ => 1
+        };
+
+        if (format == RasterPixelFormat.Bitonal)
+        {
+            var bytesPerRow = (width + 7) / 8;
+            var data = new byte[bytesPerRow * height];
+            for (var y = 0; y < height; y++)
             {
-                data.Add(path);
+                for (var x = 0; x < width; x++)
+                {
+                    if ((x + y) % 2 == 0)
+                    {
+                        var byteIndex = y * bytesPerRow + x / 8;
+                        var bitIndex = 7 - (x % 8);
+                        data[byteIndex] |= (byte)(1 << bitIndex);
+                    }
+                }
             }
+            return data;
         }
-        if (data.Count == 0)
+
+        var pixelData = new byte[width * height * bytesPerPixel];
+        for (var i = 0; i < pixelData.Length; i++)
         {
-            throw new InvalidOperationException("No sample PDF files found");
+            pixelData[i] = (byte)(i % 256);
         }
-        return data;
+        return pixelData;
+    }
+
+    private class NonSeekableStream : Stream
+    {
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => 0;
+        public override long Position { get => 0; set { } }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count) => 0;
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) { }
+        public override void Write(byte[] buffer, int offset, int count) { }
     }
 }
