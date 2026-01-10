@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF string value
 /// </summary>
-internal class PdfString : PdfValue
+public class PdfString : PdfValue
 {
     public byte[] Data { get; }
     public bool IsHex { get; }

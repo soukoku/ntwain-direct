@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfObjects;
 /// <summary>
 /// Entry status in xref table
 /// </summary>
-internal enum XrefEntryStatus
+public enum XrefEntryStatus
 {
     Free,
     InUse
@@ -14,7 +14,7 @@ internal enum XrefEntryStatus
 /// <summary>
 /// Entry in the cross-reference table
 /// </summary>
-internal readonly struct XrefEntry(long offset, int generation, XrefEntryStatus status)
+public readonly struct XrefEntry(long offset, int generation, XrefEntryStatus status)
 {
     public long Offset { get; } = offset;
     public int Generation { get; } = generation;

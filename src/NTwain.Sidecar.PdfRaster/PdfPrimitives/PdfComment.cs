@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// Represents a PDF comment (line starting with %)
 /// </summary>
-internal class PdfComment : PdfValue
+public class PdfComment : PdfValue
 {
     /// <summary>
     /// The comment text (without the leading %)

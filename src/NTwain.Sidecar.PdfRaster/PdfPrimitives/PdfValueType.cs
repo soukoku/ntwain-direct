@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// Types of PDF values
 /// </summary>
-internal enum PdfValueType
+public enum PdfValueType
 {
     Null,
     Error,

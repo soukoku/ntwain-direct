@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF stream value (dictionary + data)
 /// </summary>
-internal class PdfStream : PdfDictionary
+public class PdfStream : PdfDictionary
 {
     public byte[] Data { get; set; }
     

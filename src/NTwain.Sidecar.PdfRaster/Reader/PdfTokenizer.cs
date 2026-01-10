@@ -8,7 +8,7 @@ namespace NTwain.Sidecar.PdfRaster.Reader;
 /// <summary>
 /// Low-level PDF tokenizer
 /// </summary>
-internal class PdfTokenizer
+public class PdfTokenizer
 {
     private readonly Stream _stream;
     private readonly byte[] _buffer;

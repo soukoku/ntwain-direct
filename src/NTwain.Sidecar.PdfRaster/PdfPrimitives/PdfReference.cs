@@ -5,7 +5,7 @@ namespace NTwain.Sidecar.PdfRaster.PdfPrimitives;
 /// <summary>
 /// PDF indirect reference
 /// </summary>
-internal class PdfReference : PdfValue
+public class PdfReference : PdfValue
 {
     public int ObjectNumber { get; }
     public int Generation { get; }

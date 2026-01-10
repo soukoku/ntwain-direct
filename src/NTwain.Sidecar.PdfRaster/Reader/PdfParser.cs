@@ -8,7 +8,7 @@ namespace NTwain.Sidecar.PdfRaster.Reader;
 /// <summary>
 /// PDF object parser
 /// </summary>
-internal class PdfParser
+public class PdfParser
 {
     private readonly PdfTokenizer _tokenizer;
     private readonly XrefTable _xref;
