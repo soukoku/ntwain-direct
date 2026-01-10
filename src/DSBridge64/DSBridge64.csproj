@@ -7,7 +7,7 @@
 		<Nullable>enable</Nullable>
 		<PlatformTarget>x64</PlatformTarget>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<BaseOutputPath>..\NTwainSidecar\bin</BaseOutputPath>
+		<BaseOutputPath>..\NTwain.Sidecar\bin</BaseOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
