@@ -133,6 +133,284 @@ public class PdfRasterWriterTests
     }
 
     [Fact]
+    public void Write_JpegCompressedRgb24_ProducesValidPdf()
+    {
+        // Arrange
+        var width = 100;
+        var height = 100;
+        var pixelData = CreateRgb24TestImage(width, height);
+
+        using var outputStream = new MemoryStream();
+        using var writer = new PdfRasterWriter();
+
+        // Act
+        writer.Begin(outputStream, leaveOpen: true);
+        writer.SetPixelFormat(RasterPixelFormat.Rgb24);
+        writer.SetCompression(RasterCompression.Jpeg);
+        writer.SetJpegQuality(85);
+        writer.SetResolution(300, 300);
+        
+        writer.StartPage(width);
+        writer.WriteStrip(height, pixelData);
+        writer.EndPage();
+        writer.End();
+
+        // Assert
+        outputStream.Position = 0;
+        var pdfData = outputStream.ToArray();
+        var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
+
+        Assert.True(pdfData.Length > 0);
+        Assert.StartsWith("%PDF-", pdfText[..5]);
+        Assert.Contains("/DCTDecode", pdfText);
+        Assert.Contains("%%EOF", pdfText);
+        File.WriteAllBytes("JpegCompressedRgb24.pdf", pdfData);
+    }
+
+    [Fact]
+    public void Write_JpegCompressedRgb24_WithLowQuality_ProducesValidPdf()
+    {
+        // Arrange
+        var width = 100;
+        var height = 100;
+        var pixelData = CreateRgb24TestImage(width, height);
+
+        using var outputStream = new MemoryStream();
+        using var writer = new PdfRasterWriter();
+
+        // Act
+        writer.Begin(outputStream, leaveOpen: true);
+        writer.SetPixelFormat(RasterPixelFormat.Rgb24);
+        writer.SetCompression(RasterCompression.Jpeg);
+        writer.SetJpegQuality(50);
+        writer.SetResolution(200, 200);
+        
+        writer.StartPage(width);
+        writer.WriteStrip(height, pixelData);
+        writer.EndPage();
+        writer.End();
+
+        // Assert
+        outputStream.Position = 0;
+        var pdfData = outputStream.ToArray();
+        var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
+
+        Assert.True(pdfData.Length > 0);
+        Assert.Contains("/DCTDecode", pdfText);
+        File.WriteAllBytes("JpegCompressedRgb24_LowQuality.pdf", pdfData);
+    }
+
+    [Fact]
+    public void Write_JpegCompressedRgb24_MultipleStrips_ProducesValidPdf()
+    {
+        // Arrange
+        var width = 100;
+        var stripHeight = 25;
+        var numStrips = 4;
+        var stripData = CreateRgb24TestImage(width, stripHeight);
+
+        using var outputStream = new MemoryStream();
+        using var writer = new PdfRasterWriter();
+
+        // Act
+        writer.Begin(outputStream, leaveOpen: true);
+        writer.SetPixelFormat(RasterPixelFormat.Rgb24);
+        writer.SetCompression(RasterCompression.Jpeg);
+        writer.SetJpegQuality(85);
+        writer.SetResolution(300, 300);
+        
+        writer.StartPage(width);
+        for (int i = 0; i < numStrips; i++)
+        {
+            writer.WriteStrip(stripHeight, stripData);
+        }
+        writer.EndPage();
+        writer.End();
+
+        // Assert
+        outputStream.Position = 0;
+        var pdfData = outputStream.ToArray();
+        var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
+
+        Assert.Contains("/strip0", pdfText);
+        Assert.Contains("/strip3", pdfText);
+        Assert.Contains("/DCTDecode", pdfText);
+        File.WriteAllBytes("JpegCompressedRgb24_MultipleStrips.pdf", pdfData);
+    }
+
+    [Fact]
+    public void Write_FlateCompressedRgb24_ProducesValidPdf()
+    {
+        // Arrange
+        var width = 100;
+        var height = 100;
+        var pixelData = CreateRgb24TestImage(width, height);
+
+        using var outputStream = new MemoryStream();
+        using var writer = new PdfRasterWriter();
+
+        // Act
+        writer.Begin(outputStream, leaveOpen: true);
+        writer.SetPixelFormat(RasterPixelFormat.Rgb24);
+        writer.SetCompression(RasterCompression.Flate);
+        writer.SetResolution(300, 300);
+        
+        writer.StartPage(width);
+        writer.WriteStrip(height, pixelData);
+        writer.EndPage();
+        writer.End();
+
+        // Assert
+        outputStream.Position = 0;
+        var pdfData = outputStream.ToArray();
+        var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
+
+        Assert.True(pdfData.Length > 0);
+        Assert.StartsWith("%PDF-", pdfText[..5]);
+        Assert.Contains("/FlateDecode", pdfText);
+        Assert.Contains("/CalRGB", pdfText);
+        File.WriteAllBytes("FlateCompressedRgb24.pdf", pdfData);
+    }
+
+    [Fact]
+    public void Write_UncompressedBitonal_ProducesValidPdf()
+    {
+        // Arrange
+        var width = 100;
+        var height = 100;
+        var pixelData = CreateBitonalTestImage(width, height);
+
+        using var outputStream = new MemoryStream();
+        using var writer = new PdfRasterWriter();
+
+        // Act
+        writer.Begin(outputStream, leaveOpen: true);
+        writer.SetPixelFormat(RasterPixelFormat.Bitonal);
+        writer.SetCompression(RasterCompression.Uncompressed);
+        writer.SetResolution(200, 200);
+        
+        writer.StartPage(width);
+        writer.WriteStrip(height, pixelData);
+        writer.EndPage();
+        writer.End();
+
+        // Assert
+        outputStream.Position = 0;
+        var pdfData = outputStream.ToArray();
+        var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
+
+        Assert.True(pdfData.Length > 0, "PDF should have content");
+        Assert.StartsWith("%PDF-", pdfText[..5]);
+        Assert.Contains("/BitsPerComponent 1", pdfText);
+        Assert.Contains("%%EOF", pdfText);
+        File.WriteAllBytes("UncompressedBitonal.pdf", pdfData);
+    }
+
+    [Fact]
+    public void Write_FlateCompressedBitonal_ProducesValidPdf()
+    {
+        // Arrange
+        var width = 100;
+        var height = 100;
+        var pixelData = CreateBitonalTestImage(width, height);
+
+        using var outputStream = new MemoryStream();
+        using var writer = new PdfRasterWriter();
+
+        // Act
+        writer.Begin(outputStream, leaveOpen: true);
+        writer.SetPixelFormat(RasterPixelFormat.Bitonal);
+        writer.SetCompression(RasterCompression.Flate);
+        writer.SetResolution(300, 300);
+        
+        writer.StartPage(width);
+        writer.WriteStrip(height, pixelData);
+        writer.EndPage();
+        writer.End();
+
+        // Assert
+        outputStream.Position = 0;
+        var pdfData = outputStream.ToArray();
+        var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
+
+        Assert.True(pdfData.Length > 0);
+        Assert.StartsWith("%PDF-", pdfText[..5]);
+        Assert.Contains("/BitsPerComponent 1", pdfText);
+        Assert.Contains("/FlateDecode", pdfText);
+        File.WriteAllBytes("FlateCompressedBitonal.pdf", pdfData);
+    }
+
+    [Fact]
+    public void Write_CcittCompressedBitonal_ProducesValidPdf()
+    {
+        // Arrange
+        var width = 100;
+        var height = 100;
+        var pixelData = CreateBitonalTestImage(width, height);
+
+        using var outputStream = new MemoryStream();
+        using var writer = new PdfRasterWriter();
+
+        // Act
+        writer.Begin(outputStream, leaveOpen: true);
+        writer.SetPixelFormat(RasterPixelFormat.Bitonal);
+        writer.SetCompression(RasterCompression.CcittGroup4);
+        writer.SetResolution(300, 300);
+        
+        writer.StartPage(width);
+        writer.WriteStrip(height, pixelData);
+        writer.EndPage();
+        writer.End();
+
+        // Assert
+        outputStream.Position = 0;
+        var pdfData = outputStream.ToArray();
+        var pdfText = System.Text.Encoding.ASCII.GetString(pdfData);
+
+        Assert.True(pdfData.Length > 0);
+        Assert.StartsWith("%PDF-", pdfText[..5]);
+        Assert.Contains("/BitsPerComponent 1", pdfText);
+        Assert.Contains("/CCITTFaxDecode", pdfText);
+        File.WriteAllBytes("CcittCompressedBitonal.pdf", pdfData);
+    }
+
+    [Fact]
+    public void Write_BitonalMultipleStrips_ProducesValidPdf()
+    {
+        // Arrange
+        var width = 100;
+        var stripHeight = 25;
+        var numStrips = 4;
+        var stripData = CreateBitonalTestImage(width, stripHeight);
+
+        using var outputStream = new MemoryStream();
+        using var writer = new PdfRasterWriter();
+
+        // Act
+        writer.Begin(outputStream, leaveOpen: true);
+        writer.SetPixelFormat(RasterPixelFormat.Bitonal);
+        writer.SetCompression(RasterCompression.Uncompressed);
+        writer.SetResolution(200, 200);
+        
+        writer.StartPage(width);
+        for (int i = 0; i < numStrips; i++)
+        {
+            writer.WriteStrip(stripHeight, stripData);
+        }
+        writer.EndPage();
+        writer.End();
+
+        // Assert
+        outputStream.Position = 0;
+        var pdfText = System.Text.Encoding.ASCII.GetString(outputStream.ToArray());
+
+        Assert.Contains("/strip0", pdfText);
+        Assert.Contains("/strip3", pdfText);
+        Assert.Contains("/BitsPerComponent 1", pdfText);
+        File.WriteAllBytes("BitonalMultipleStrips.pdf", outputStream.ToArray());
+    }
+
+    [Fact]
     public void Write_MultiplePages_ProducesValidPdf()
     {
         // Arrange
@@ -326,6 +604,7 @@ public class PdfRasterWriterTests
         {
             for (var x = 0; x < width; x++)
             {
+                // Create a checkerboard pattern
                 if ((x + y) % 2 == 0)
                 {
                     var byteIndex = y * bytesPerRow + x / 8;

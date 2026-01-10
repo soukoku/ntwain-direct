@@ -49,6 +49,7 @@ public class PdfRasterWriter : IDisposable
     private bool _bitonalUncalibrated;
     private bool _calibrateGray = true;
     private bool _calibrateRgb = true;
+    private int _jpegQuality = 85;
     
     // Document metadata
     private DateTime _creationDate;
@@ -236,6 +237,14 @@ public class PdfRasterWriter : IDisposable
     }
     
     /// <summary>
+    /// Set JPEG quality for subsequent pages (1-100, default 85)
+    /// </summary>
+    public void SetJpegQuality(int quality)
+    {
+        _jpegQuality = Math.Clamp(quality, 1, 100);
+    }
+    
+    /// <summary>
     /// Set whether to use uncalibrated DeviceGray for bitonal images
     /// </summary>
     public bool SetBitonalUncalibrated(bool uncal)
@@ -331,17 +340,26 @@ public class PdfRasterWriter : IDisposable
         if (_currentPage == null)
             throw new PdfApiException("No page is open");
         
-        // Prepare data (compress if needed)
-        byte[] streamData;
-        if (_compression == RasterCompression.Flate)
+        // Extract the relevant portion of data if offset/count specified
+        byte[] rawData;
+        if (offset == 0 && count == data.Length)
         {
-            streamData = RasterUtilities.CompressFlate(data, offset, count);
+            rawData = data;
         }
         else
         {
-            streamData = new byte[count];
-            Array.Copy(data, offset, streamData, 0, count);
+            rawData = new byte[count];
+            Array.Copy(data, offset, rawData, 0, count);
         }
+        
+        // Compress data based on compression type
+        byte[] streamData = _compression switch
+        {
+            RasterCompression.Flate => RasterUtilities.CompressFlate(rawData),
+            RasterCompression.CcittGroup4 => MagickImageEncoder.Encode(rawData, _currentPageWidth, rows, _pixelFormat, _compression),
+            RasterCompression.Jpeg => MagickImageEncoder.Encode(rawData, _currentPageWidth, rows, _pixelFormat, _compression, _jpegQuality),
+            _ => rawData // Uncompressed
+        };
         
         // Create image XObject stream
         var stream = new PdfStream(streamData);
