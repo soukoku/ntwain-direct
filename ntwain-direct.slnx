@@ -1,1 +1,4 @@
-<Solution />
+<Solution>
+  <Project Path="src/DSBridge32/DSBridge32.csproj" />
+  <Project Path="src/DSBridge64/DSBridge64.csproj" />
+</Solution>
