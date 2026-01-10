@@ -1,4 +1,5 @@
-﻿using SimpleIpc;
+﻿using NTwain;
+using SimpleIpc;
 
 namespace DSBridge;
 
@@ -7,7 +8,7 @@ internal class Program
     static async Task Main(string[] args)
     {
         await using var connection = await IpcChildConnection.CreateAndWaitForConnectionAsync(args);
-
+        using var twain = new TwainAppSession();
         // Subscribe to disconnection event
         connection.Disconnected += (sender, e) =>
         {
@@ -18,6 +19,9 @@ internal class Program
             // Use DisconnectedToken to automatically cancel operations when parent exits
             while (!connection.DisconnectedToken.IsCancellationRequested)
             {
+                twain.OpenDsm();
+
+
                 var request = await connection.ReadAsync<DSRequest>();
 
                 if (request is null)
@@ -38,8 +42,10 @@ internal class Program
         {
             // Parent exited, exit gracefully
         }
-
-
+        finally
+        {
+            twain.CloseDsm();
+        }
         Console.Error.WriteLine("DSBridge exiting.");
     }
 }

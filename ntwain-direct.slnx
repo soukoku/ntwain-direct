@@ -2,4 +2,5 @@
   <Project Path="src/DSBridge.Core/DSBridge.Core.csproj" Id="a789ff22-6390-40ef-affe-46b9b27a62ad" />
   <Project Path="src/DSBridge32/DSBridge32.csproj" />
   <Project Path="src/DSBridge64/DSBridge64.csproj" />
+  <Project Path="src/NTwain.Sidecar/NTwain.Sidecar.csproj" />
 </Solution>

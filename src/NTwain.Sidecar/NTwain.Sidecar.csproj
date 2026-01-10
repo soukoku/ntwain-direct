@@ -5,19 +5,19 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<PlatformTarget>x86</PlatformTarget>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<BaseOutputPath>..\NTwainSidecar\bin</BaseOutputPath>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\DSBridge.Core\DSBridge.Core.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="runtimes\win-x86\native\TWAINDSM.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.10.1" />
+		<PackageReference Include="Makaretu.Dns.Multicast.New" Version="0.38.0" />
 	</ItemGroup>
-
 </Project>
