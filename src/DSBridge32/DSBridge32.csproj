@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="Soukoku.SimpleIpc" Version="1.0.0.1" />
+	  <ProjectReference Include="..\DSBridge.Core\DSBridge.Core.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
