@@ -15,10 +15,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\DSBridge.Core\DSBridge.Core.csproj" />
 		<ProjectReference Include="..\NTwain.Sidecar.Dtos\NTwain.Sidecar.Dtos.csproj" />
+		<ProjectReference Include="..\NTwain.Sidecar.PdfR\NTwain.Sidecar.PdfR.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.10.1" />
 		<PackageReference Include="Makaretu.Dns.Multicast.New" Version="0.38.0" />
 	</ItemGroup>
 </Project>
