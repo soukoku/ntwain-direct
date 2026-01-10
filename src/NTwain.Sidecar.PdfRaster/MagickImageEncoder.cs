@@ -61,6 +61,12 @@ public static class MagickImageEncoder
 
     private static MagickImage CreateMagickImage(byte[] pixelData, int width, int height, RasterPixelFormat format)
     {
+        // For bitonal images, we need special handling since the data is bit-packed
+        if (format == RasterPixelFormat.Bitonal)
+        {
+            return CreateBitonalMagickImage(pixelData, width, height);
+        }
+        
         var (pixelMapping, storageType) = GetPixelMappingAndStorage(format);
         
         var magickImage = new MagickImage();
@@ -78,24 +84,100 @@ public static class MagickImageEncoder
         magickImage.Depth = format switch
         {
             RasterPixelFormat.Gray16 or RasterPixelFormat.Rgb48 => 16,
-            RasterPixelFormat.Bitonal => 1,
             _ => 8
         };
 
-        // For 1-bit images, ensure proper colorspace
-        if (format == RasterPixelFormat.Bitonal)
-        {
-            magickImage.ColorType = ColorType.Bilevel;
-        }
-
         return magickImage;
+    }
+
+    /// <summary>
+    /// Create a MagickImage from bit-packed bitonal data
+    /// </summary>
+    private static MagickImage CreateBitonalMagickImage(byte[] packedData, int width, int height)
+    {
+        // Unpack 1-bit data to 8-bit grayscale for Magick.NET
+        var unpackedData = UnpackBitonalData(packedData, width, height);
+        
+        var magickImage = new MagickImage();
+        
+        var readSettings = new PixelReadSettings(
+            (uint)width,
+            (uint)height,
+            StorageType.Char,
+            "R");
+
+        magickImage.ReadPixels(unpackedData, readSettings);
+        
+        // Convert to bilevel
+        magickImage.ColorType = ColorType.Bilevel;
+        magickImage.Depth = 1;
+        
+        return magickImage;
+    }
+
+    /// <summary>
+    /// Unpack bit-packed bitonal data to 8-bit grayscale (0 or 255)
+    /// </summary>
+    private static byte[] UnpackBitonalData(byte[] packedData, int width, int height)
+    {
+        var unpacked = new byte[width * height];
+        int bytesPerRow = (width + 7) / 8;
+        
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int byteIndex = y * bytesPerRow + x / 8;
+                int bitIndex = 7 - (x % 8);
+                
+                if (byteIndex < packedData.Length)
+                {
+                    bool isSet = (packedData[byteIndex] & (1 << bitIndex)) != 0;
+                    // In PDF, 1 = white, 0 = black for bitonal with default decode
+                    // But we're using BlackIs1, so 1 = black, 0 = white
+                    unpacked[y * width + x] = isSet ? (byte)0 : (byte)255;
+                }
+            }
+        }
+        
+        return unpacked;
+    }
+
+    /// <summary>
+    /// Pack 8-bit grayscale data to bit-packed bitonal
+    /// </summary>
+    private static byte[] PackBitonalData(byte[] unpackedData, int width, int height)
+    {
+        int bytesPerRow = (width + 7) / 8;
+        var packed = new byte[bytesPerRow * height];
+        
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int srcIndex = y * width + x;
+                int byteIndex = y * bytesPerRow + x / 8;
+                int bitIndex = 7 - (x % 8);
+                
+                if (srcIndex < unpackedData.Length)
+                {
+                    // Threshold: < 128 is black (1), >= 128 is white (0)
+                    if (unpackedData[srcIndex] < 128)
+                    {
+                        packed[byteIndex] |= (byte)(1 << bitIndex);
+                    }
+                }
+            }
+        }
+        
+        return packed;
     }
 
     private static (string Mapping, StorageType Storage) GetPixelMappingAndStorage(RasterPixelFormat format)
     {
         return format switch
         {
-            RasterPixelFormat.Bitonal => ("R", StorageType.Char),
+            RasterPixelFormat.Bitonal => ("R", StorageType.Char), // Not used for bitonal, handled separately
             RasterPixelFormat.Gray8 => ("R", StorageType.Char),
             RasterPixelFormat.Gray16 => ("R", StorageType.Short),
             RasterPixelFormat.Rgb24 => ("RGB", StorageType.Char),
@@ -148,15 +230,17 @@ public static class MagickImageEncoder
 
     private static byte[] ExtractPixelData(MagickImage image, RasterPixelFormat format)
     {
+        // For bitonal, we need to extract and pack the data
+        if (format == RasterPixelFormat.Bitonal)
+        {
+            return ExtractBitonalPixelData(image);
+        }
+        
         var (mapping, _) = GetPixelMappingAndStorage(format);
 
         // Convert to appropriate depth if needed
         switch (format)
         {
-            case RasterPixelFormat.Bitonal:
-                image.ColorType = ColorType.Bilevel;
-                image.Depth = 1;
-                break;
             case RasterPixelFormat.Gray8:
             case RasterPixelFormat.Rgb24:
                 image.Depth = 8;
@@ -169,6 +253,21 @@ public static class MagickImageEncoder
 
         using var pixels = image.GetPixels();
         return pixels.ToByteArray(mapping) ?? [];
+    }
+
+    /// <summary>
+    /// Extract pixel data from a bilevel image and pack to 1-bit format
+    /// </summary>
+    private static byte[] ExtractBitonalPixelData(MagickImage image)
+    {
+        // Ensure it's grayscale
+        image.ColorType = ColorType.Grayscale;
+        image.Depth = 8;
+        
+        using var pixels = image.GetPixels();
+        var unpacked = pixels.ToByteArray("R") ?? [];
+        
+        return PackBitonalData(unpacked, (int)image.Width, (int)image.Height);
     }
 
     /// <summary>
