@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/TWAIN-Direct-Bridge-Implementors-Guide.md" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/NTwain.Sidecar.PdfRaster.Tests/NTwain.Sidecar.PdfRaster.Tests.csproj" />
   </Folder>
