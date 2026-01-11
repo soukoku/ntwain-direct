@@ -6,7 +6,5 @@ namespace DSBridge;
 
 public record DSRequest
 {
-    public required string Category { get; init; }
-
     public required string Command { get; init; }
 }

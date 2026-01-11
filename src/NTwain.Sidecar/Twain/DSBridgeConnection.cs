@@ -50,8 +50,7 @@ internal class DSBridgeConnection : IDisposable
     {
         var request = new DSRequest
         {
-            Category = "internal",
-            Command = "GetSources"
+            Command = KnownBridgeCommands.GetSources
         };
         await _connection.SendAsync(request);
         var resp = await _connection.ReadAsync<DSResponse>();

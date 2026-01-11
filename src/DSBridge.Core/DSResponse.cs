@@ -5,8 +5,6 @@ namespace DSBridge;
 
 public record DSResponse
 {
-    public required string Category { get; init; }
-
     public required string Command { get; init; }
 
 
