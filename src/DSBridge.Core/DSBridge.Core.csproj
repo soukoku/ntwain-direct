@@ -9,7 +9,11 @@
 
 	<ItemGroup>
 		<PackageReference Include="NTwain" Version="4.0.0-beta.1" />
-		<PackageReference Include="Soukoku.SimpleIpc" Version="1.0.0.1" />
+		<PackageReference Include="Soukoku.SimpleIpc" Version="1.0.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\NTwain.Sidecar.Dtos\NTwain.Sidecar.Dtos.csproj" />
 	</ItemGroup>
 
 </Project>

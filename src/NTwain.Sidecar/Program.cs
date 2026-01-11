@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using NTwain.Sidecar.Twain;
 
 namespace NTwain.Sidecar;
 
@@ -31,6 +32,9 @@ internal class Program
 
         // Enable CORS
         app.UseCors();
+
+
+        app.Map("/test", () => SourceEnumerator.GetAllSourcesAsync());
 
         app.Run();
     }

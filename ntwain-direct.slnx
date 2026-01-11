@@ -11,5 +11,8 @@
   <Project Path="src/DSBridge64/DSBridge64.csproj" />
   <Project Path="src/NTwain.Sidecar.Dtos/NTwain.Sidecar.Dtos.csproj" Id="6a608496-b2b7-4c5e-9d89-bcc9b89198df" />
   <Project Path="src/NTwain.Sidecar.PdfRaster/NTwain.Sidecar.PdfRaster.csproj" />
-  <Project Path="src/NTwain.Sidecar/NTwain.Sidecar.csproj" />
+  <Project Path="src/NTwain.Sidecar/NTwain.Sidecar.csproj">
+    <BuildDependency Project="src/DSBridge32/DSBridge32.csproj" />
+    <BuildDependency Project="src/DSBridge64/DSBridge64.csproj" />
+  </Project>
 </Solution>
